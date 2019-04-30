@@ -1,9 +1,7 @@
 package hu.uszeged.inf.backtrack;
 
-import java.util.Random;
-
 /**
- * This is csabe812's qeen problem
+ * This is csabe812's Queen problem
  * 
  * @author csabe812
  * @version 1.0
@@ -15,17 +13,17 @@ public class QueenCsabe812 {
 	 * This constant will be used to represent the chess (like a chess) table
 	 */
 	private final int N = 8;
-	private final int startRow = 0;
 	private final int startColumn = 0;
-	private int prevQueenRow = 0;
-	private int prevQueenColumn = 0;
-	private int numberOfQueens = 0;
 	/**
 	 * This is the table
 	 */
 	private int[][] table;
 
+	/**
+	 * Default constructor for initializing table, etc.
+	 */
 	public QueenCsabe812() {
+		long startTime = System.nanoTime();
 		table = new int[N][N];
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
@@ -33,6 +31,15 @@ public class QueenCsabe812 {
 			}
 		}
 		run();
+		long endTime = System.nanoTime();
+		long totalTime = endTime - startTime;
+		System.out.println("Runtime in nanoseconds: " + totalTime);
+	}
+
+	/**
+	 * Prints the given table
+	 */
+	public void printTable() {
 		for (int i = 0; i < N; i++) {
 			for (int j = 0; j < N; j++) {
 				System.out.print(table[i][j] + " ");
@@ -41,76 +48,52 @@ public class QueenCsabe812 {
 		}
 	}
 
-	public void putOneQueen(int x, int y) {
-		table[x][y] = 1;
-		numberOfQueens++;
-	}
-
 	/**
-	 * Putting a Queen to the given position
+	 * Putting a Queen to the given position: This is the main part of the program
+	 * using a backtracking algorithm. If the column's number is bigger than the
+	 * N-qeen (so it's done and we successfully put N-Queen) Otherwise: iterate
+	 * through the columns and check if the position is valid. If so then put a
+	 * Queen and continue with the next column using the current method recursively.
+	 * If we cannot put a Queen to the given column (all rows with 0) --> recursive
+	 * + backtracking <3
 	 * 
-	 * @param x horizontal position
-	 * @param y vertical position
+	 * @param column the given column where we try to put a Queen
+	 * @return
 	 */
-	public void putQueenTo(int x, int y) {
-		if (numberOfQueens == N || x == N || y == N)
-			return;
-		if (isQueenInValidPosition(x, y)) {
-			putOneQueen(x, y);
-			putQueenTo(0, y + 1);
-		} else {
-			movePreviousQueen(x, y-1);
-		}
-	}
-
-	public void movePreviousQueen(int row, int column) {
-		if (column < 0)
-			return;
-		if(row < 0 && !(column < 0))
-			table[prevQueenRow][prevQueenColumn] = 0;
-			movePreviousQueen(0, column-1);
-			
-		//Findig previous queen's position	
-		findPreviousQueen(column);
-		if (prevQueenRow - 1 >= 0 && isQueenInValidPosition(prevQueenRow - 1, prevQueenColumn)) {
-			table[prevQueenRow][prevQueenColumn] = 0;
-			numberOfQueens--;
-			putOneQueen(prevQueenRow - 1, prevQueenColumn);
-		} else if (prevQueenRow - 1 == 0 && !isQueenInValidPosition(prevQueenRow - 1, prevQueenColumn)){
-			table[prevQueenRow][prevQueenColumn] = 0;
-			numberOfQueens--;
-			putOneQueen(prevQueenRow - 1, prevQueenColumn);
-			movePreviousQueen(0, prevQueenColumn);
-		} else {
-			
-		}
-	}
-
-	
-	public void findPreviousQueen(int column) {
-		prevQueenRow = -1;
-		prevQueenColumn = -1;
-		for(int i = 0; i < N ; i++) {
-			if(table[i][column] == 1) {
-				prevQueenRow = i;
-				prevQueenColumn = column;
+	public boolean putQueenTo(int column) {
+		if (column >= N)
+			return true;
+		for (int i = 0; i < N; i++) {
+			if (isQueenInValidPosition(i, column)) {
+				table[i][column] = 1;
+				if (putQueenTo(column + 1)) {
+					return true;
+				}
+				table[i][column] = 0;
 			}
 		}
+		return false;
 	}
-	
+
 	/**
 	 * Checking the Queen's position (which would like to take a new position)
 	 * 
 	 * @param x horizontal position
-	 * @param y vertical posistion
+	 * @param y vertical position
 	 * @return true if the Queen's position is valid
 	 * 
 	 */
 	public boolean isQueenInValidPosition(int x, int y) {
-		System.out.println("Verti: " + isVerticalValid(x, y));
-		return isVerticalValid(x, y) && isHorizontalValid(x, y) && isDiagonalValid(x, y);
+		return isHorizontalValid(x, y) && isDiagonalValid(x, y);
 	}
 
+	/**
+	 * Vertical validation.
+	 * 
+	 * @param row    The given row
+	 * @param column The given column
+	 * @return true, if vertical valid
+	 */
 	public boolean isVerticalValid(int row, int column) {
 		for (int i = 0; i < N; i++) {
 			if (table[i][column] != 0) {
@@ -120,8 +103,15 @@ public class QueenCsabe812 {
 		return true;
 	}
 
+	/**
+	 * Horizontal validation
+	 * 
+	 * @param row    The given row
+	 * @param column The given column
+	 * @return true, if horizontal valid
+	 */
 	public boolean isHorizontalValid(int row, int column) {
-		for (int j = 0; j < N; j++) {
+		for (int j = 0; j < column; j++) {
 			if (table[row][j] != 0) {
 				return false;
 			}
@@ -129,44 +119,32 @@ public class QueenCsabe812 {
 		return true;
 	}
 
+	/**
+	 * Diagonal validation: Note: we only check those diagonals where a Queen might
+	 * have already been put
+	 * 
+	 * @param row    The given row
+	 * @param column The given column
+	 * @return true, if diagonal valid
+	 */
 	public boolean isDiagonalValid(int row, int column) {
-		// example row 2 colum 4
-		int tempRow = row;
-		int tempColum = column;
-		System.out.println("ROW_COL: " + row + " " + column + " N: " + N);
-		while (tempRow < N - 1 && tempColum < N - 1) {
-			if (table[tempRow][tempColum] != 0) {
+		int i = row;
+		int j = column;
+		while (i >= 0 && j >= 0) {
+			if (table[i][j] != 0) {
 				return false;
 			}
-			tempRow++;
-			tempColum++;
+			i--;
+			j--;
 		}
-		tempRow = row;
-		tempColum = column;
-		while (tempRow >= 0 && tempColum >= 0) {
-			if (table[tempRow][tempColum] != 0) {
+		i = row;
+		j = column;
+		while (i < N && j >= 0) {
+			if (table[i][j] != 0) {
 				return false;
 			}
-			tempRow--;
-			tempColum--;
-		}
-		tempRow = row;
-		tempColum = column;
-		while (tempRow >= 0 && tempColum < N-1) {
-			if (table[tempRow][tempColum] != 0) {
-				return false;
-			}
-			tempRow--;
-			tempColum++;
-		}
-		tempRow = row;
-		tempColum = column;
-		while (tempRow < N-1 && tempColum >= 0) {
-			if (table[tempRow][tempColum] != 0) {
-				return false;
-			}
-			tempRow++;
-			tempColum--;
+			i++;
+			j--;
 		}
 		return true;
 	}
@@ -177,11 +155,7 @@ public class QueenCsabe812 {
 	 * 
 	 */
 	public void run() {
-		putQueenTo(startRow, startColumn);
+		putQueenTo(startColumn);
+		printTable();
 	}
-
-	public static void main(String[] args) {
-		new QueenCsabe812();
-	}
-
 }

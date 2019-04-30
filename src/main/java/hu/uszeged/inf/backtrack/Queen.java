@@ -175,7 +175,9 @@ public class Queen{
 	}
 	
 	public static void main(String[] args) {
-		place();		
-		print();
+        place();        
+        print();
+        // csabe812's solution
+        new QueenCsabe812();
 	}
 }
